@@ -1,0 +1,6 @@
+Vulnerability Scan Report
+=========================
+
+Vulnerabilities detected on the following URLs:
+- http://localhost:3000/rest/products/search?q=%27%3B+DROP+TABLE+users%3B+--
+- http://localhost:3000/rest/products/search?q=%27+OR+1%3D1+LIMIT+1%3B+--
