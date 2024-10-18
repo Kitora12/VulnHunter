@@ -58,7 +58,7 @@ python3 main.py -u http://example.com/search?q=test --sql
 To test for command injection vulnerabilities, use the `--command` flag:
 
 ```bash
-python3 main.py -u http://localhost:3000/ping?ip=127.0.0.1 --command
+python3 main.py -u http://example.com/ping?ip=127.0.0.1 --command
 ```
 
 This will test for command injection vulnerabilities in the `ip` parameter.
