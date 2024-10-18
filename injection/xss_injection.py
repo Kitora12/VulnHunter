@@ -8,6 +8,15 @@ class XSSInjection(InjectionBase):
         super().__init__("XSS Injection")
 
     def load_xss_payloads(self, filepath="payloads/xss_payloads.txt"):
+        """
+        Loads XSS payloads from the specified file.
+
+        Args:
+            filepath (str): Path to the file containing XSS payloads.
+
+        Returns:
+            list: A list of XSS payloads.
+        """
         try:
             with open(filepath, 'r') as file:
                 payloads = [line.strip() for line in file.readlines()]
@@ -17,27 +26,44 @@ class XSSInjection(InjectionBase):
             print(Fore.RED + f"Error loading payloads from {filepath}: {e}")
             return []
 
-    async def injection(self, form, url, client):
+    async def injection(self, forms, url, client):
+        """
+        Tests each form for XSS vulnerabilities using a set of payloads.
+
+        Args:
+            forms (list): List of HTML form elements to test.
+            url (str): The base URL to use for testing.
+            client (httpx.AsyncClient): The HTTP client to make requests.
+
+        Returns:
+            list: A list of detected XSS vulnerabilities, each as a tuple of the vulnerable URL and payload.
+        """
         print(Fore.CYAN + f"Testing for {self.name} on {url}...")
-        
+
         xss_payloads = self.load_xss_payloads()
         vulnerabilities = []
-        action = form.get('action')
-        full_url = url + action if action else url
 
-        for payload in xss_payloads:
-            form_data = self.prepare_form_data(form, payload)
+        for form in forms:
+            if not hasattr(form, 'get'):
+                print(Fore.RED + "Skipping non-form element.")
+                continue
 
-            response = await self.send_injection_request(client, full_url, form_data)
-            if response and payload in response.text:
-                print(Fore.RED + f"XSS vulnerability found at {full_url}")
-                vulnerabilities.append(full_url)
+            action = form.get('action', '')
+            full_url = url + action if action else url
 
-            if response:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                if payload in str(soup):
-                    print(Fore.RED + f"Persistente XSS vulnerability detected at {full_url}")
-                    vulnerabilities.append(full_url)
+            for payload in xss_payloads:
+                form_data = self.prepare_form_data(form, payload)
+
+                response = await self.send_injection_request(client, full_url, form_data)
+                if response and payload in response.text:
+                    print(Fore.RED + f"XSS vulnerability found at {full_url} with payload: {payload}")
+                    vulnerabilities.append((full_url, payload))
+
+                if response:
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    if payload in str(soup):
+                        print(Fore.RED + f"Persistent XSS vulnerability detected at {full_url} with payload: {payload}")
+                        vulnerabilities.append((full_url, payload))
 
         if not vulnerabilities:
             print(Fore.GREEN + "No XSS vulnerabilities found.")
@@ -45,6 +71,16 @@ class XSSInjection(InjectionBase):
         return vulnerabilities
 
     async def test_xss_on_get_params(self, url, client):
+        """
+        Tests GET parameters of a URL for XSS vulnerabilities using a set of payloads.
+
+        Args:
+            url (str): The URL with query parameters to test for XSS.
+            client (httpx.AsyncClient): The HTTP client to make requests.
+
+        Returns:
+            list: A list of detected XSS vulnerabilities, each as a tuple of the vulnerable URL and payload.
+        """
         print(Fore.CYAN + f"Testing GET parameters for XSS on {url}...")
 
         xss_payloads = self.load_xss_payloads()
@@ -65,8 +101,8 @@ class XSSInjection(InjectionBase):
                 
                 response = await client.get(new_url)
                 if payload in response.text:
-                    print(Fore.RED + f"XSS vulnerability found at {new_url}")
-                    vulnerabilities.append(new_url)
+                    print(Fore.RED + f"XSS vulnerability found at {new_url} with payload: {payload}")
+                    vulnerabilities.append((new_url, payload))
 
         if not vulnerabilities:
             print(Fore.GREEN + "No XSS vulnerabilities found in GET parameters.")
