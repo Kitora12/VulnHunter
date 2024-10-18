@@ -9,6 +9,7 @@ def parse_arguments():
     parser.add_argument('-u', '--url', type=str, required=True, help="Target website URL to scan")
     parser.add_argument('--sql', action='store_true', help="Enable SQL Injection testing")
     parser.add_argument('--xss', action='store_true', help="Enable XSS Injection testing")
+    parser.add_argument("--command", action="store_true", help="Test for Command injections")
     parser.add_argument('-r', '--report', action='store_true', help="Generate a report of the findings")
     
     args = parser.parse_args()

